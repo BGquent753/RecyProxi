@@ -30,5 +30,17 @@ const userSchema = new Schema({
     }
 },{
     versionKey:false,
-    collection:"mongodb-9"
+    collection:"users"
 });
+
+export interface User{
+    name:string,
+    firstName: string,
+    birthDate?:Date,
+    address:string,
+    userName:string,
+    password:string,
+    mail:string
+};
+
+export const UserModel= mongoose.model("User", userSchema);

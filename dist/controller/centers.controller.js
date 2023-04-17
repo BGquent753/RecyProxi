@@ -36,59 +36,96 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserController = void 0;
+exports.CenterController = void 0;
 var express = require("express");
 var models_1 = require("../models");
-var UserController = /** @class */ (function () {
-    function UserController() {
-        this.path = '/user';
-        this.model = models_1.UserModel;
+var CenterController = /** @class */ (function () {
+    function CenterController() {
+        this.path = '/center';
+        this.model = models_1.CenterModel;
     }
     ;
-    UserController.prototype.getAll = function (req, res) {
+    CenterController.prototype.getAll = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var users;
+            var centers;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.model.find().exec()];
                     case 1:
-                        users = _a.sent();
-                        res.json(users);
+                        centers = _a.sent();
+                        res.json(centers);
                         return [2 /*return*/];
                 }
             });
         });
     };
     ;
-    UserController.prototype.rightUserPassword = function (req, res) {
-        var user = this.model.findOne({
-            userName: req.body.userName,
-            password: req.body.password
+    CenterController.prototype.createCenter = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var add, tel, mail, center;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        add = "address";
+                        tel = "telephone";
+                        mail = "mail";
+                        return [4 /*yield*/, this.model.create({
+                                address: add,
+                                telephone: tel,
+                                mail: mail,
+                                wastes: ["metal", "papier"]
+                            })];
+                    case 1:
+                        center = _a.sent();
+                        res.json(center);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CenterController.prototype.centerWithWaste = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var center;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.model.find({
+                            wastes: req.params.waste
+                        })];
+                    case 1:
+                        center = _a.sent();
+                        res.send(center);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    CenterController.prototype.deleteCenter = function (req, res) {
+        //const mail = "mail"
+        var center = this.model.deleteOne({
+            mail: req.params.mail
         }).exec();
-        user.then(function (u) {
-            var str = JSON.stringify(u);
-            if (userNotEmpty(str)) {
-                res.send(u);
+        center.then(function (c) {
+            if (c.deletedCount === 0) {
+                res.status(404);
+                res.send("This center doesn't exist");
             }
             else {
-                res.send("ERROR");
+                res.status(200);
+                res.json(c);
             }
-        }).catch(function (err) {
-            console.log(err);
         });
-        //res.send("OK")
     };
-    UserController.prototype.buildRoutes = function () {
+    /*async patchCenter(req:Request, res:Response){
+    }*/
+    CenterController.prototype.buildRoutes = function () {
         var router = express.Router();
-        router.get('/auth', express.json(), this.rightUserPassword.bind(this));
-        router.get('/', this.getAll.bind(this));
+        router.get('/all', this.getAll.bind(this));
+        router.post('/', express.json(), this.createCenter.bind(this));
+        router.get('/:waste', this.centerWithWaste.bind(this));
+        router.delete('/:mail', this.deleteCenter.bind(this));
         return router;
     };
-    ;
-    return UserController;
+    return CenterController;
 }());
-exports.UserController = UserController;
-function userNotEmpty(user) {
-    return user !== "null";
-}
-//# sourceMappingURL=users.controller.js.map
+exports.CenterController = CenterController;
+//# sourceMappingURL=centers.controller.js.map

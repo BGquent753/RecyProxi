@@ -36,41 +36,36 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var dotenv_1 = require("dotenv");
-(0, dotenv_1.config)();
-var mongoose = require("mongoose");
+exports.WasteController = void 0;
 var express = require("express");
-var controller_1 = require("./controller");
-function startServer() {
-    return __awaiter(this, void 0, void 0, function () {
-        var connection, app, userController, centerController, wasteController;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, mongoose.connect(process.env.MONGODB_URI, {
-                        auth: {
-                            username: process.env.MONGODB_USR,
-                            password: process.env.MONGODB_PSW
-                        },
-                        authSource: "admin"
-                    })];
-                case 1:
-                    connection = _a.sent();
-                    app = express();
-                    userController = new controller_1.UserController();
-                    centerController = new controller_1.CenterController();
-                    wasteController = new controller_1.WasteController();
-                    app.use(userController.path, userController.buildRoutes());
-                    app.use(centerController.path, centerController.buildRoutes());
-                    app.use(wasteController.path, wasteController.buildRoutes());
-                    app.listen(process.env.PORT, function () {
-                        console.log("Server listen port ".concat(process.env.PORT));
-                    });
-                    return [2 /*return*/];
-            }
+var models_1 = require("../models");
+var WasteController = /** @class */ (function () {
+    function WasteController() {
+        this.path = '/waste';
+        this.model = models_1.WasteModel;
+    }
+    ;
+    WasteController.prototype.getAll = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var wastes;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.model.find().exec()];
+                    case 1:
+                        wastes = _a.sent();
+                        res.json(wastes);
+                        return [2 /*return*/];
+                }
+            });
         });
-    });
-}
-startServer().catch(function (err) {
-    console.error(err);
-});
-//# sourceMappingURL=RecyProxi.js.map
+    };
+    ;
+    WasteController.prototype.buildRoutes = function () {
+        var router = express.Router();
+        router.get('/all', this.getAll.bind(this));
+        return router;
+    };
+    return WasteController;
+}());
+exports.WasteController = WasteController;
+//# sourceMappingURL=waste.controller.js.map
