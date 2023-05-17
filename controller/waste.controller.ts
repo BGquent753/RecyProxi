@@ -17,10 +17,27 @@ export class WasteController{
         res.json(wastes);
     };
 
+    async add(req:Request, res:Response){
+        const waste = this.model.create({
+            name:req.body.name,
+            price:req.body.price
+        })
+        res.json(waste)
+    }
+
+    async delete(req:Request, res:Response){
+        const waste = this.model.deleteOne({
+            name:req.params.name
+        }).exec()
+        res.json(waste)
+    }
+
 
     buildRoutes():Router{
         const router = express.Router();
         router.get('/all', this.getAll.bind(this));
+        router.patch('/add', express.json(), this.add.bind(this))
+        router.delete('/delete/:name', this.delete.bind(this))
 
         return router;
     }

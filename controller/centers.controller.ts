@@ -1,7 +1,7 @@
 import * as express from "express";
 import {Router, Request, Response} from "express";
 import {Model} from "mongoose";
-import {Center, CenterModel} from "../models";
+import {Center, CenterModel, Waste, WasteModel} from "../models";
 
 export class CenterController{
     readonly path: string;
@@ -13,29 +13,77 @@ export class CenterController{
     };
 
     async getAll(req:Request, res:Response):Promise<void>{
-        const centers = await this.model.find().exec();
+        const centers = await this.model.find().populate({path:"wastes"}).exec();
         res.json(centers);
     };
 
     async createCenter(req:Request, res:Response):Promise<void>{
-        const add:string = "address";
-        const tel:string = "telephone";
-        const mail:string = "mail";
         const center = await this.model.create({
-            address:add,
-            telephone:tel,
-            mail:mail,
-            wastes:["metal", "papier"]
+            address:req.body.address,
+            telephone:req.body.telephone,
+            mail:req.body.mail,
+            wastes:req.body.wastes
         });
         res.json(center);
     }
 
-    async centerWithWaste(req:Request, res:Response){
+    async addWaste(req:Request, res:Response){
+        const waste = await WasteModel.findOne({
+            name: req.params.name
+        })
+
+        const center = await this.model.findOneAndUpdate({
+            _id:req.body.id
+        },{
+            $push:{wastes:waste}
+        }).exec() as Center
+
+        const newCenter = await this.model.findOne({
+            _id:req.body.id
+        }).populate({
+            path:"wastes"
+        }).exec()
+
+        res.json(newCenter)
+    }
+
+    async deleteWaste(req:Request, res:Response){
+        const waste = await WasteModel.findOne({
+            name:req.params.name
+        }) as Waste
+
+        const center = await this.model.findOneAndUpdate({
+            _id:req.body.id
+        },{
+            "$pull":{
+                "wastes":waste._id
+            }
+        })
+
+        const newCenter = await this.model.findOne({
+            _id:req.body.id
+        })
+
+
+        res.json(newCenter)
+    }
+
+    //A REFAIRE
+    /*async centerWithWaste(req:Request, res:Response){
+        const tab:string[] = req.body.tab
+        const request:{wastes:string}[] = []
+        for(let i = 0; i < tab.length; i++){
+            request.push({wastes:`${tab[i]}`})
+        }
         const center = await this.model.find({
-            wastes: req.params.waste
+            //requete pour plusieurs dechets
+            //$and:tableau de {waste:string}
+
+            //requetes pour les centre contenant au moins un des déchets sélectionnés
+            $or:request
         })
         res.send(center)
-    }
+    }*/
 
     deleteCenter(req:Request, res:Response)/*:Promise<void>*/{
         //const mail = "mail"
@@ -61,10 +109,12 @@ export class CenterController{
     buildRoutes():Router{
         const router = express.Router();
         router.get('/all', this.getAll.bind(this));
+        //router.get('/waste',express.json(), this.centerWithWaste.bind(this))
 
         router.post('/',express.json(), this.createCenter.bind(this))
 
-        router.get('/:waste', this.centerWithWaste.bind(this))
+        router.patch('/add/:name', express.json(), this.addWaste.bind(this))
+        router.patch('/del/:name', express.json(), this.deleteWaste.bind(this))
 
         router.delete('/:mail', this.deleteCenter.bind(this));
         return router;

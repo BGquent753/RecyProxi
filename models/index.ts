@@ -1,3 +1,3 @@
-export * from './users/users.model'
-export * from './centers/centers.model'
-export * from './waste/waste.model'
+export * from './users.model'
+export * from './centers.model'
+export * from './waste.model'

@@ -1,6 +1,6 @@
 import mongoose, {Document, Model, Schema} from 'mongoose';
 
-const wasteSchema = new Schema({
+const wasteSchema = new Schema<Waste>({
     name:{
         type: Schema.Types.String,
         required: true
@@ -15,7 +15,8 @@ const wasteSchema = new Schema({
 });
 
 export interface Waste{
-    name:string,
+    _id:string
+    name:string
     price:string
 };
 

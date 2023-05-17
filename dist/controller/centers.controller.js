@@ -50,7 +50,7 @@ var CenterController = /** @class */ (function () {
             var centers;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.model.find().exec()];
+                    case 0: return [4 /*yield*/, this.model.find().populate({ path: "wastes" }).exec()];
                     case 1:
                         centers = _a.sent();
                         res.json(centers);
@@ -62,19 +62,15 @@ var CenterController = /** @class */ (function () {
     ;
     CenterController.prototype.createCenter = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var add, tel, mail, center;
+            var center;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        add = "address";
-                        tel = "telephone";
-                        mail = "mail";
-                        return [4 /*yield*/, this.model.create({
-                                address: add,
-                                telephone: tel,
-                                mail: mail,
-                                wastes: ["metal", "papier"]
-                            })];
+                    case 0: return [4 /*yield*/, this.model.create({
+                            address: req.body.address,
+                            telephone: req.body.telephone,
+                            mail: req.body.mail,
+                            wastes: req.body.wastes
+                        })];
                     case 1:
                         center = _a.sent();
                         res.json(center);
@@ -83,22 +79,82 @@ var CenterController = /** @class */ (function () {
             });
         });
     };
-    CenterController.prototype.centerWithWaste = function (req, res) {
+    CenterController.prototype.addWaste = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var center;
+            var waste, center, newCenter;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.model.find({
-                            wastes: req.params.waste
+                    case 0: return [4 /*yield*/, models_1.WasteModel.findOne({
+                            name: req.params.name
                         })];
                     case 1:
+                        waste = _a.sent();
+                        return [4 /*yield*/, this.model.findOneAndUpdate({
+                                _id: req.body.id
+                            }, {
+                                $push: { wastes: waste }
+                            }).exec()];
+                    case 2:
                         center = _a.sent();
-                        res.send(center);
+                        return [4 /*yield*/, this.model.findOne({
+                                _id: req.body.id
+                            }).populate({
+                                path: "wastes"
+                            }).exec()];
+                    case 3:
+                        newCenter = _a.sent();
+                        res.json(newCenter);
                         return [2 /*return*/];
                 }
             });
         });
     };
+    CenterController.prototype.deleteWaste = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var waste, center, newCenter;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, models_1.WasteModel.findOne({
+                            name: req.params.name
+                        })];
+                    case 1:
+                        waste = _a.sent();
+                        return [4 /*yield*/, this.model.findOneAndUpdate({
+                                _id: req.body.id
+                            }, {
+                                "$pull": {
+                                    "wastes": waste._id
+                                }
+                            })];
+                    case 2:
+                        center = _a.sent();
+                        return [4 /*yield*/, this.model.findOne({
+                                _id: req.body.id
+                            })];
+                    case 3:
+                        newCenter = _a.sent();
+                        res.json(newCenter);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    //A REFAIRE
+    /*async centerWithWaste(req:Request, res:Response){
+        const tab:string[] = req.body.tab
+        const request:{wastes:string}[] = []
+        for(let i = 0; i < tab.length; i++){
+            request.push({wastes:`${tab[i]}`})
+        }
+        const center = await this.model.find({
+            //requete pour plusieurs dechets
+            //$and:tableau de {waste:string}
+
+            //requetes pour les centre contenant au moins un des déchets sélectionnés
+            $or:request
+        })
+        res.send(center)
+    }*/
     CenterController.prototype.deleteCenter = function (req, res) {
         //const mail = "mail"
         var center = this.model.deleteOne({
@@ -120,8 +176,10 @@ var CenterController = /** @class */ (function () {
     CenterController.prototype.buildRoutes = function () {
         var router = express.Router();
         router.get('/all', this.getAll.bind(this));
+        //router.get('/waste',express.json(), this.centerWithWaste.bind(this))
         router.post('/', express.json(), this.createCenter.bind(this));
-        router.get('/:waste', this.centerWithWaste.bind(this));
+        router.patch('/add/:name', express.json(), this.addWaste.bind(this));
+        router.patch('/del/:name', express.json(), this.deleteWaste.bind(this));
         router.delete('/:mail', this.deleteCenter.bind(this));
         return router;
     };

@@ -60,9 +60,36 @@ var WasteController = /** @class */ (function () {
         });
     };
     ;
+    WasteController.prototype.add = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var waste;
+            return __generator(this, function (_a) {
+                waste = this.model.create({
+                    name: req.body.name,
+                    price: req.body.price
+                });
+                res.json(waste);
+                return [2 /*return*/];
+            });
+        });
+    };
+    WasteController.prototype.delete = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var waste;
+            return __generator(this, function (_a) {
+                waste = this.model.deleteOne({
+                    name: req.params.name
+                }).exec();
+                res.json(waste);
+                return [2 /*return*/];
+            });
+        });
+    };
     WasteController.prototype.buildRoutes = function () {
         var router = express.Router();
         router.get('/all', this.getAll.bind(this));
+        router.patch('/add', express.json(), this.add.bind(this));
+        router.delete('/delete/:name', this.delete.bind(this));
         return router;
     };
     return WasteController;
