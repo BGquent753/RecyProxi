@@ -60,16 +60,36 @@ var WasteController = /** @class */ (function () {
         });
     };
     ;
+    WasteController.prototype.getWaste = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var waste;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.model.findOne({
+                            name: req.params.name
+                        }).exec()];
+                    case 1:
+                        waste = _a.sent();
+                        res.json(waste);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
     WasteController.prototype.add = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
             var waste;
             return __generator(this, function (_a) {
-                waste = this.model.create({
-                    name: req.body.name,
-                    price: req.body.price
-                });
-                res.json(waste);
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.model.create({
+                            name: req.body.name,
+                            price: req.body.price
+                        })];
+                    case 1:
+                        waste = _a.sent();
+                        res.json(waste);
+                        return [2 /*return*/];
+                }
             });
         });
     };
@@ -77,18 +97,23 @@ var WasteController = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var waste;
             return __generator(this, function (_a) {
-                waste = this.model.deleteOne({
-                    name: req.params.name
-                }).exec();
-                res.json(waste);
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.model.deleteOne({
+                            name: req.params.name
+                        }).exec()];
+                    case 1:
+                        waste = _a.sent();
+                        res.json(waste);
+                        return [2 /*return*/];
+                }
             });
         });
     };
     WasteController.prototype.buildRoutes = function () {
         var router = express.Router();
         router.get('/all', this.getAll.bind(this));
-        router.patch('/add', express.json(), this.add.bind(this));
+        router.get('/:name', this.getWaste.bind(this));
+        router.post('/add', express.json(), this.add.bind(this));
         router.delete('/delete/:name', this.delete.bind(this));
         return router;
     };

@@ -17,8 +17,15 @@ export class WasteController{
         res.json(wastes);
     };
 
+    async getWaste(req:Request, res:Response){
+        const waste = await this.model.findOne({
+            name:req.params.name
+        }).exec()
+        res.json(waste)
+    }
+
     async add(req:Request, res:Response){
-        const waste = this.model.create({
+        const waste = await this.model.create({
             name:req.body.name,
             price:req.body.price
         })
@@ -26,7 +33,7 @@ export class WasteController{
     }
 
     async delete(req:Request, res:Response){
-        const waste = this.model.deleteOne({
+        const waste = await this.model.deleteOne({
             name:req.params.name
         }).exec()
         res.json(waste)
@@ -36,7 +43,8 @@ export class WasteController{
     buildRoutes():Router{
         const router = express.Router();
         router.get('/all', this.getAll.bind(this));
-        router.patch('/add', express.json(), this.add.bind(this))
+        router.get('/:name', this.getWaste.bind(this));
+        router.post('/add', express.json(), this.add.bind(this))
         router.delete('/delete/:name', this.delete.bind(this))
 
         return router;

@@ -84,6 +84,23 @@ export class CenterController{
         })
         res.send(center)
     }*/
+    async centerWithWaste(req:Request, res:Response){
+        const tab = req.body.tab
+        const request:{wastes:string}[] = []
+        for (let i in tab){
+            const name = tab[i]
+            const waste = await WasteModel.findOne({
+                name:name
+            }) as Waste
+            request.push({wastes:waste._id})
+        }
+        const centers = await this.model.find({
+            $or:request
+        }).populate({
+            path:"wastes"
+        }).exec()
+        res.json(centers)
+    }
 
     deleteCenter(req:Request, res:Response)/*:Promise<void>*/{
         //const mail = "mail"
@@ -109,7 +126,7 @@ export class CenterController{
     buildRoutes():Router{
         const router = express.Router();
         router.get('/all', this.getAll.bind(this));
-        //router.get('/waste',express.json(), this.centerWithWaste.bind(this))
+        router.get('/:waste',express.json(), this.centerWithWaste.bind(this))
 
         router.post('/',express.json(), this.createCenter.bind(this))
 
