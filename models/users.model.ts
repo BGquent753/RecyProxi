@@ -1,6 +1,7 @@
 import mongoose, {Document, Model, Schema} from 'mongoose';
+import {Role} from "./role.model";
 
-const userSchema = new Schema({
+const userSchema = new Schema<User>({
     name:{
         type: Schema.Types.String,
         required: true
@@ -16,18 +17,27 @@ const userSchema = new Schema({
         type:Schema.Types.String,
         required:true
     },
-    userName:{
+    mail:{
         type:Schema.Types.String,
         required:true
+    },
+    login:{
+        type: Schema.Types.String,
+        index:true,
+        unique:true,
+        required: true
     },
     password:{
         type:Schema.Types.String,
         required:true
     },
-    mail:{
-        type:Schema.Types.String,
-        required:true
-    }
+    roles:[
+        {
+            type:Schema.Types.ObjectId,
+            ref:"Role",
+            required:true
+        }
+    ]
 },{
     versionKey:false,
     collection:"users"
@@ -38,9 +48,10 @@ export interface User{
     firstName: string,
     birthDate?:Date,
     address:string,
-    userName:string,
-    password:string,
-    mail:string
+    mail:string,
+    login:string,
+    password:string
+    roles: string[] | Role[]
 };
 
-export const UserModel= mongoose.model("User", userSchema);
+export const UserModel:Model<User>= mongoose.model("User", userSchema);

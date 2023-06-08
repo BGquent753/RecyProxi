@@ -68,22 +68,6 @@ export class CenterController{
         res.json(newCenter)
     }
 
-    //A REFAIRE
-    /*async centerWithWaste(req:Request, res:Response){
-        const tab:string[] = req.body.tab
-        const request:{wastes:string}[] = []
-        for(let i = 0; i < tab.length; i++){
-            request.push({wastes:`${tab[i]}`})
-        }
-        const center = await this.model.find({
-            //requete pour plusieurs dechets
-            //$and:tableau de {waste:string}
-
-            //requetes pour les centre contenant au moins un des déchets sélectionnés
-            $or:request
-        })
-        res.send(center)
-    }*/
     async centerWithWaste(req:Request, res:Response){
         const tab = req.body.tab
         const request:{wastes:string}[] = []
@@ -119,8 +103,21 @@ export class CenterController{
         })
     }
 
-    /*async patchCenter(req:Request, res:Response){
-    }*/
+    async patchCenter(req:Request, res:Response){
+        const center = await this.model.findOneAndUpdate({
+            _id:req.body.id
+        },{
+            address:req.body.address,
+            telephone:req.body.telephone,
+            mail:req.body.mail
+        })
+
+        const newCenter = await this.model.findOne({
+            _id:req.body.id
+        })
+
+        res.json(newCenter)
+    }
 
 
     buildRoutes():Router{
@@ -132,6 +129,7 @@ export class CenterController{
 
         router.patch('/add/:name', express.json(), this.addWaste.bind(this))
         router.patch('/del/:name', express.json(), this.deleteWaste.bind(this))
+        router.patch('/patch', express.json(), this.patchCenter.bind(this))
 
         router.delete('/:mail', this.deleteCenter.bind(this));
         return router;

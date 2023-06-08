@@ -39,10 +39,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 var express = require("express");
 var models_1 = require("../models");
+var security_utils_1 = require("../utils/security.utils");
+var session_model_1 = require("../models/session.model");
+var role_model_1 = require("../models/role.model");
+var user_middleware_1 = require("../middlewares/user.middleware");
+var role_middleware_1 = require("../middlewares/role.middleware");
 var UserController = /** @class */ (function () {
     function UserController() {
         this.path = '/user';
         this.model = models_1.UserModel;
+        this.guestRole = null;
     }
     ;
     UserController.prototype.getAll = function (req, res) {
@@ -50,7 +56,9 @@ var UserController = /** @class */ (function () {
             var users;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.model.find().exec()];
+                    case 0: return [4 /*yield*/, this.model.find().populate({
+                            path: "roles"
+                        }).exec()];
                     case 1:
                         users = _a.sent();
                         res.json(users);
@@ -59,29 +67,142 @@ var UserController = /** @class */ (function () {
             });
         });
     };
-    ;
-    UserController.prototype.rightUserPassword = function (req, res) {
-        var user = this.model.findOne({
-            userName: req.body.userName,
-            password: req.body.password
-        }).exec();
-        user.then(function (u) {
-            var str = JSON.stringify(u);
-            if (userNotEmpty(str)) {
-                res.send(u);
-            }
-            else {
-                res.send("ERROR");
-            }
-        }).catch(function (err) {
-            console.log(err);
+    UserController.prototype.getUser = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var user;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.model.findOne({
+                            login: req.params.login
+                        })];
+                    case 1:
+                        user = _a.sent();
+                        res.send(user);
+                        return [2 /*return*/];
+                }
+            });
         });
-        //res.send("OK")
+    };
+    UserController.prototype.loadGuestRole = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (this.guestRole) {
+                            return [2 /*return*/];
+                        }
+                        _a = this;
+                        return [4 /*yield*/, role_model_1.RoleModel.findOne({ name: "guest" }).exec()];
+                    case 1:
+                        _a.guestRole = _b.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    UserController.prototype.subscribe = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var login, password, user, err_1, me;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!req.body) {
+                            res.status(400).end();
+                            return [2 /*return*/];
+                        }
+                        if (typeof req.body.login !== 'string' || req.body.login.length < 4) {
+                            res.status(400).send("Error in login, thanks to follow these rules:\n- minimum 4 caracters\n- only string");
+                            return [2 /*return*/];
+                        }
+                        if (typeof req.body.password !== 'string' || req.body.password.length < 8) {
+                            res.status(400).send("Error in password, thanks to follow these rules:\n- minimum 8 caracters\n- only string");
+                            return [2 /*return*/];
+                        }
+                        login = req.body.login;
+                        password = req.body.password;
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 4, , 5]);
+                        return [4 /*yield*/, this.loadGuestRole()];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, models_1.UserModel.create({
+                                name: req.body.name,
+                                firstName: req.body.firstName,
+                                birthDate: req.body.birthDate,
+                                address: req.body.address,
+                                mail: req.body.mail,
+                                login: login,
+                                password: security_utils_1.SecurityUtils.toSHA512(password),
+                                roles: [this.guestRole]
+                            })];
+                    case 3:
+                        user = _a.sent();
+                        res.send(user);
+                        return [3 /*break*/, 5];
+                    case 4:
+                        err_1 = _a.sent();
+                        me = err_1;
+                        if (me["name"] === "MongoServerError" && me["code"] === 11000) {
+                            res.status(409).send("this login already exists, choose another one");
+                        }
+                        else {
+                            res.status(500).send(me);
+                        }
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    UserController.prototype.login = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var user, platform, session;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!req.body || typeof req.body.login !== 'string' || typeof req.body.password !== 'string') {
+                            res.status(400).end();
+                            return [2 /*return*/];
+                        }
+                        return [4 /*yield*/, models_1.UserModel.findOne({
+                                login: req.body.login,
+                                password: security_utils_1.SecurityUtils.toSHA512(req.body.password)
+                            })];
+                    case 1:
+                        user = _a.sent();
+                        platform = req.headers['user-agent'];
+                        return [4 /*yield*/, session_model_1.SessionModel.create({
+                                user: user,
+                                platform: platform
+                            })];
+                    case 2:
+                        session = _a.sent();
+                        res.json({
+                            token: session._id
+                        });
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    UserController.prototype.me = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                res.json(req.user);
+                return [2 /*return*/];
+            });
+        });
     };
     UserController.prototype.buildRoutes = function () {
         var router = express.Router();
-        router.get('/auth', express.json(), this.rightUserPassword.bind(this));
-        router.get('/', this.getAll.bind(this));
+        router.get('/all', this.getAll.bind(this));
+        router.get('/:login', this.getUser.bind(this));
+        router.get('/me', (0, user_middleware_1.checkUserToken)(), this.me.bind(this));
+        router.get('/admin', (0, user_middleware_1.checkUserToken)(), (0, role_middleware_1.checkUserRole)("admin"), this.me.bind(this));
+        router.post('/subscribe', express.json(), this.subscribe.bind(this));
+        router.post('/login', express.json(), this.login.bind(this));
         return router;
     };
     ;

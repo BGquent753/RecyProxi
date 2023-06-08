@@ -109,10 +109,34 @@ var WasteController = /** @class */ (function () {
             });
         });
     };
+    WasteController.prototype.patchWaste = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var waste, newWaste;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.model.findOneAndUpdate({
+                            name: req.body.name
+                        }, {
+                            price: req.body.price
+                        })];
+                    case 1:
+                        waste = _a.sent();
+                        return [4 /*yield*/, this.model.findOne({
+                                name: req.body.name
+                            })];
+                    case 2:
+                        newWaste = _a.sent();
+                        res.send(newWaste);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
     WasteController.prototype.buildRoutes = function () {
         var router = express.Router();
         router.get('/all', this.getAll.bind(this));
         router.get('/:name', this.getWaste.bind(this));
+        router.patch('/patch', express.json(), this.patchWaste.bind(this));
         router.post('/add', express.json(), this.add.bind(this));
         router.delete('/delete/:name', this.delete.bind(this));
         return router;

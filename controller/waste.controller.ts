@@ -39,11 +39,28 @@ export class WasteController{
         res.json(waste)
     }
 
+    async patchWaste(req:Request, res:Response){
+        const waste = await this.model.findOneAndUpdate({
+            name:req.body.name
+        },{
+            price:req.body.price
+        })
+
+        const newWaste = await this.model.findOne({
+            name:req.body.name
+        })
+
+        res.send(newWaste)
+    }
+
 
     buildRoutes():Router{
         const router = express.Router();
         router.get('/all', this.getAll.bind(this));
         router.get('/:name', this.getWaste.bind(this));
+
+        router.patch('/patch', express.json(), this.patchWaste.bind(this))
+
         router.post('/add', express.json(), this.add.bind(this))
         router.delete('/delete/:name', this.delete.bind(this))
 

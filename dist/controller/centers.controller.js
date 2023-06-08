@@ -139,22 +139,6 @@ var CenterController = /** @class */ (function () {
             });
         });
     };
-    //A REFAIRE
-    /*async centerWithWaste(req:Request, res:Response){
-        const tab:string[] = req.body.tab
-        const request:{wastes:string}[] = []
-        for(let i = 0; i < tab.length; i++){
-            request.push({wastes:`${tab[i]}`})
-        }
-        const center = await this.model.find({
-            //requete pour plusieurs dechets
-            //$and:tableau de {waste:string}
-
-            //requetes pour les centre contenant au moins un des déchets sélectionnés
-            $or:request
-        })
-        res.send(center)
-    }*/
     CenterController.prototype.centerWithWaste = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
             var tab, request, _a, _b, _c, _i, i, name_1, waste, centers;
@@ -214,8 +198,31 @@ var CenterController = /** @class */ (function () {
             }
         });
     };
-    /*async patchCenter(req:Request, res:Response){
-    }*/
+    CenterController.prototype.patchCenter = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var center, newCenter;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.model.findOneAndUpdate({
+                            _id: req.body.id
+                        }, {
+                            address: req.body.address,
+                            telephone: req.body.telephone,
+                            mail: req.body.mail
+                        })];
+                    case 1:
+                        center = _a.sent();
+                        return [4 /*yield*/, this.model.findOne({
+                                _id: req.body.id
+                            })];
+                    case 2:
+                        newCenter = _a.sent();
+                        res.json(newCenter);
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
     CenterController.prototype.buildRoutes = function () {
         var router = express.Router();
         router.get('/all', this.getAll.bind(this));
@@ -223,6 +230,7 @@ var CenterController = /** @class */ (function () {
         router.post('/', express.json(), this.createCenter.bind(this));
         router.patch('/add/:name', express.json(), this.addWaste.bind(this));
         router.patch('/del/:name', express.json(), this.deleteWaste.bind(this));
+        router.patch('/patch', express.json(), this.patchCenter.bind(this));
         router.delete('/:mail', this.deleteCenter.bind(this));
         return router;
     };
