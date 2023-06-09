@@ -185,7 +185,7 @@ var CenterController = /** @class */ (function () {
     CenterController.prototype.deleteCenter = function (req, res) {
         //const mail = "mail"
         var center = this.model.deleteOne({
-            mail: req.params.mail
+            _id: req.body.id
         }).exec();
         center.then(function (c) {
             if (c.deletedCount === 0) {
@@ -226,12 +226,12 @@ var CenterController = /** @class */ (function () {
     CenterController.prototype.buildRoutes = function () {
         var router = express.Router();
         router.get('/all', this.getAll.bind(this));
-        router.get('/:waste', express.json(), this.centerWithWaste.bind(this));
+        router.get('/wastes', express.json(), this.centerWithWaste.bind(this));
         router.post('/', express.json(), this.createCenter.bind(this));
         router.patch('/add/:name', express.json(), this.addWaste.bind(this));
         router.patch('/del/:name', express.json(), this.deleteWaste.bind(this));
         router.patch('/patch', express.json(), this.patchCenter.bind(this));
-        router.delete('/:mail', this.deleteCenter.bind(this));
+        router.delete('/delete', express.json(), this.deleteCenter.bind(this));
         return router;
     };
     return CenterController;
